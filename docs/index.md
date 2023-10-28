@@ -1,28 +1,31 @@
 # Background story
 
-I already had some experience with the scope of this exercise, in particular of what APIs I wanted
-to use and a basic structure of the application's flow.
+I wanted to investigate how AI could help me in my coding endeavors. Using an older version of a dummy application, I started
+replicating a simple web service that takes a Pokemon character name as parameter and returns a Shakespearean translation of its 
+description. For reference, the  full project code is available at my [shakemon](https://github.com/LucaWolf/shakemon) repository.
 
-The only question remaining was how would Codeium do when I threw at it all this information I wante to build on.
+I've had already some experience with the scope of this exercise, in particular of what APIs and modules 
+([GorillaMux](https://github.com/gorilla/mux) and [Resty](https://github.com/go-resty/resty)) I wanted to use and the basic flow of the application. 
+
+The only question remaining was how would [Codeium](https://codeium.com/) AI system help me when I threw at it all this information.
 
 # Setup and usage
-I have used the VS Code as text editor and the plugin provided for it. Upon installing the extension,
-the firs use going to be prompting you to login (I have used my google account) and then present you with an 
-`{...}` icon in the extensions panel. Expand it and start typing requests at the prompt.
+I have used the VS Code as text editor and the [plugin](https://codeium.com/vscode_tutorial) provided for it. Upon installing the extension,
+the first use is going to be prompting you to login (I have used my google account) and then present you with an 
+`{...}` icon in the extensions panel. Expand it and start interacting the prompt, it is as simple as that.
 
-> [!BRILLIANT]
-> Not only Codeium generates a block of code for but also renders a decent description of what the code does
-and supplements it by some recommendations. For keeping this post short, I will only copy the first
-commentary section and skip listing for the rest of the output.
+> **NOTE**
+> not only Codeium generates blocks of code but also renders a decent description of what those source code do
+and supplements it with some recommendations.
 
 
-# The `main` frame
-In order to follow an older version of this application, I wanted to create a simple web service that takes
-a Pokemon name parameter and returns a Shakesperean translation of its description. So let's start issuing "demands":
+# The `main` entry point
+ So let's start by issuing "demands":
 
 > write me a gorrilamux server with an GET endpoint taking two path parameters
 >>
 >> Sure! Here's an example of a Gorilla Mux server with a GET endpoint that takes two path parameters:
+
 ```go
 package main
 
@@ -50,14 +53,16 @@ func getUser(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Name: %s\n", name)
     fmt.Fprintf(w, "Age: %s\n", age)
 }
+
 ```
 >> This server sets up a Gorilla Mux router and defines a GET endpoint at "/users/{name}/{age}". 
->> When a GET request is made to that endpoint, the getUser function is called.
->> The function extracts the name and age path parameters from the request using mux.Vars and writes them back as the response.
+>> When a GET request is made to that endpoint, the `getUser` function is called.
+>> The function extracts the `name` and `age` path parameters from the request using `mux.Vars` and writes them back as the response.
 >>
->> Remember to import the Gorilla Mux package (github.com/gorilla/mux) before running this code.
+>> Remember to import the Gorilla Mux package (`github.com/gorilla/mux`) before running this code.
 
-Decent enough! Let me make some scope adjustments and stub the desired functionality. So now it looke like
+Decent enough! Let me made some scope adjustments and stub the desired functionality. So then it looked like:
+
 ```go
 r.HandleFunc("/translate/{kind}/{name}", translatePokemon).Methods("GET")
 
@@ -73,18 +78,22 @@ if description, err := getDescription(name); err != nil {
     // use the Bard
     return some error body and http.StatusFailedDependency } 
 else {
-    // fianlly return the expectations
+    // finally return the expectations
     return result(translation) and http.StatusOK 
 }
+
 ```
-I won't get into what errors and positive outcome is, basically a simpel json body with the inherite errors or data.
+I won't get into what errors and positive outcome is, basically simple json body with the inherited errors or data.
 
 
 # Making of `getDescription`
+I had issued this command and got back:
+
 > implement getDescription as a resty module request to pokemon API returning the description of the name or an error
 >>
->> Certainly! Here's an example of how you can implement the getDescription function using the Resty module 
+>> Certainly! Here's an example of how you can implement the `getDescription` function using the Resty module 
 >> to make a request to the Pokemon API and retrieve the description of a given name:
+
 ```go
 type PokemonAPIResponse struct {
 	Species struct {
@@ -136,33 +145,37 @@ func getDescription(name string) (string, error) {
 
 	return description, nil
 }
+
 ```
->> In this example, we define a struct PokemonAPIResponse to represent the response from the Pokemon API. 
->> We use the Resty module to make a GET request to the API using the provided name as a path parameter. 
+>> In this example, we define a struct `PokemonAPIResponse` to represent the response from the Pokemon API. 
+>> We use the Resty module to make a GET request to the API using the provided `name` as a path parameter. 
 >> We then parse the response and extract the English flavor text as the description.
 >>
->> Please note that you need to import the Resty module (github.com/go-resty/resty/v2) before running this code.
+>> Please note that you need to import the Resty module (`github.com/go-resty/resty/v2`) before running this code.
 
-Very nice. I'd like to make it slighlty mine though, so let's just call `SetResult(PokemonAPIResponse{}).` on the `client.R()` request to let the 
-library do the json parsing. I don't care about of the `200` http code test for now, there is always room for improvement later on.
+Very nice. I'd like to make it slightly mine though, so let's just call `SetResult(PokemonAPIResponse{})` on the `client.R()` request to let the 
+library do the heavy lifting on the json parsing. I don't care about of the `200` http code test for now, there is always room for improvement later on.
 
-Impresive that:
- - it listed the right API endpoint by `pokemon` and `description` tokens only
- - it built path parameters correctly.
- - was able to build the reponse structure by API definition
-   (wherever it took it from, online or "trained memory". I did not have any local referenc to that API).
- - it compiled and worked correctly (before my changes)
- - it filtered by English `en` langauge with passing this requirement. This context awareness is somewhat scary, 
-   unless this functionality has been put forward in a lot of interviews :-) and is somewhat very well knwon and scores high on code references.
+**Impressive that**:
+ - it listed the right API endpoint from input of `pokemon` and `description` tokens (keywords) only.
+ - it built path parameters for the API request correctly.
+ - was able to build the `PokemonAPIResponse` response structure compatible with the API's definition.
+   (wherever it took it from, online or "trained memory". I did not have any local reference to that API though I have an older similar project in Github.
+ - the embedded `struct` in `struct` definition of `PokemonAPIResponse` took me by surprise; I wasn't even aware of this syntax being allowed.
+ - it compiled and worked correctly (even before adding any of my changes).
+ - it automatically filtered the results by English `en` language <ins>without asking</ins> for this requirement. This context awareness is somewhat scary, 
+   unless this functionality has been put forward in a lot of interviews :-) and is likely very well known and scores high on token references.
 
 
---- listing the rest of conversation
+# Making of `getTranslation`
 
-   implement getTranslation as an resty client to shakespeare style API translation endpoint of api.funtranslations.com
+> implement getTranslation as an resty client to shakespeare style API translation endpoint of api.funtranslations.com
+>>
+>> Sure! Here's an example of how you can implement the `getTranslation` function using the Resty module to make a request to 
+>> the Shakespeare style API translation endpoint of api.funtranslations.com:
 
-   Sure! Here's an example of how you can implement the getTranslation function using the Resty module to make a request to the Shakespeare style API translation endpoint of api.funtranslations.com:
-
-   type TranslationAPIResponse struct {
+```go
+type TranslationAPIResponse struct {
 	Contents struct {
 		Translated string `json:"translated"`
 	} `json:"contents"`
@@ -199,28 +212,65 @@ func getTranslation(text string) (string, error) {
 
 	return translation, nil
 }
-In this example, we define a struct TranslationAPIResponse to represent the response from the translation API. We use the Resty module to make a GET request to the API, passing the text as a query parameter. We then parse the response and extract the translated text.
 
-Please note that you need to import the Resty module (github.com/go-resty/resty/v2) before running this code.
+```
+>> In this example, we define a struct `TranslationAPIResponse` to represent the response from the translation API. 
+>> We use the Resty module to make a GET request to the API, passing the `text` as a query parameter.
+>>  We then parse the response and extract the translated text.
+>>
+>> Please note that you need to import the Resty module (`github.com/go-resty/resty/v2`) before running this code.
 
+Perhaps was due to the my simple way of expressing the request but this API endpoint was supposed to take a POST request
+(thus using  `client.R().SetFormData` method instead of `SetQueryParams`). I also adjusted the usual json response parsing and reworked a bit the return block.
 
-implement json deserialiation for type StringOrInt. When string copy as is, when integer convert into string.
+Nonetheless, the provided code was a solid starting base. My adjusted version reads:
 
-Sat, Oct 28, 2023, 2:06 pm
-To implement JSON deserialization for a type StringOrInt where a string is copied as is and an integer is converted into a string, you can define a custom unmarshal method for the type. Here's an example:
+```go
+{
+	// POST instead of GET
+	resp, err := client.R().
+		SetFormData(map[string]string{
+			"text": text,
+		}).
+		SetError(apiError{}).
+		SetResult(TranslationAPIResponse{}).
+		Post("https://api.funtranslations.com/translate/shakespeare.json")
 
+	...
+	// replace the http.Code 200 tests
+	if resp.IsError() {
+		err, _ := resp.Error().(*apiError)
+		return "", &err.Error
+	}
 
-Copied! ✅
-📝 Copy Code
- ➕ Insert Code
-package main
+	// Extract the description from the API response
+	data, ok := resp.Result().(*TranslationAPIResponse)
+	if !ok {
+		return "", errors.New("response was not a Translation API format")
+	}
 
-import (
-	"encoding/json"
-	"fmt"
-	"strconv"
-)
+	if len(data.Contents.Translated) == 0 {
+		return "", errors.New("no translation found")
+	}
 
+	return data.Contents.Translated, nil
+}
+
+```
+
+# Playing with json unmarshalling
+At this point, after a few debug/testing sessions, I realized that there is a divergence between the applications API error type `apiErrorDetails`
+(inspired by MS Graph and using `Code` formatted as `string` => some meaningful message) and the error returned by the translation service 
+(using `Code` as `integer` => the http.code value). In order to consolidate them, I've applied the "polymorphic" unmarshalling trick,
+ i.e. type wrap the `Code` into own type `StringOrInt` and implementing a parsing routine over it. 
+ 
+So my request to the AI engine was:
+> implement json deserialisation for type StringOrInt. When string copy as is, when integer convert into string.
+>>
+>> To implement JSON deserialization for a type `StringOrInt` where a string is copied as is and an integer is converted into a string, you can define a custom 
+>> unmarshal method for the type. Here's an example:
+
+```go 
 type StringOrInt struct {
 	Value string
 }
@@ -264,34 +314,26 @@ func main() {
 		fmt.Println("Value:", obj.Value)
 	}
 }
-In this example, we define the StringOrInt struct with a Value field of type string. We then implement the UnmarshalJSON method for the StringOrInt type. Inside the method, we use type assertions to determine the type of the raw value and handle it accordingly. If the raw value is a string, we copy it as is. If it's a float64 or int, we convert it to a string using strconv. For any other type, we return an error.
 
-In the main function, we demonstrate the usage of the StringOrInt type by unmarshaling JSON data containing a string and an integer. We print the Value field to verify the deserialization.
+```
+>> In this example, we define the `StringOrInt` struct with a `Value` field of type `string`. We then implement the `UnmarshalJSON` method for the `StringOrInt`
+>> type. Inside the method, we use type assertions to determine the type of the raw value and handle it accordingly. 
+>> If the raw value is a string, we copy it as is. If it's a `float64` or `int`, we convert it to a string using `strconv`. 
+>> For any other type, we return an error.
+>>
+>> In the main function, we demonstrate the usage of the StringOrInt type by unmarshaling JSON data containing a string and an integer. 
+>> We print the Value field to >> verify the deserialization.
+>>
+>> Please note that this implementation assumes that the JSON data has a field named value which corresponds to the Value field of the StringOrInt struct.
 
-Please note that this implementation assumes that the JSON data has a field named value which corresponds to the Value field of the StringOrInt struct.
+Excellent implementation, with usage example on top! But me being picky, I wanted the `StringOrInt` type to exclude inner fields as I don't like multiple
+ dereferencing (e.g. `obj.Value`). Therefore I issued a more explicit request:
 
+> refactor StringOrInt so is a simple type StringOrInt string redefinition. Unmarshal should accommodate this type overload
+>>
+>>Certainly! Here's an updated version of the `StringOrInt` type with a custom `UnmarshalJSON` method that handles the overloaded type:
 
-
-Sat, Oct 28, 2023, 2:06 pm
-LL
-
-refactor StringOrInt so is a simple type StringOrInt string redefinition. Unmarshal should accomodate this type overload
-
-Sat, Oct 28, 2023, 2:11 pm
-Certainly! Here's an updated version of the StringOrInt type with a custom UnmarshalJSON method that handles the overloaded type:
-
-
-Copied! ✅
-📝 Copy Code
- ➕ Insert Code
-package main
-
-import (
-	"encoding/json"
-	"fmt"
-	"strconv"
-)
-
+```go
 type StringOrInt string
 
 func (s *StringOrInt) UnmarshalJSON(data []byte) error {
@@ -315,52 +357,25 @@ func (s *StringOrInt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func main() {
-	jsonData := `{"value": "hello"}`
-	var obj struct {
-		Value StringOrInt `json:"value"`
-	}
-	err := json.Unmarshal([]byte(jsonData), &obj)
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Value:", obj.Value)
-	}
+// same usage example 
+func main() {...}
+```
 
-	jsonData = `{"value": 42}`
-	err = json.Unmarshal([]byte(jsonData), &obj)
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Value:", obj.Value)
-	}
-}
-In this updated example, we redefine StringOrInt as a simple type of string. We then implement the UnmarshalJSON method for the StringOrInt type. Inside the method, we handle the overloaded type by switching on the type of the raw value and assigning it to the StringOrInt variable s. We convert float64 and int values to strings using strconv.
-
-In the main function, we demonstrate the usage of the updated StringOrInt type by unmarshaling JSON data containing a string and an integer. We print the Value field to verify the deserialization.
-
-Please note that this updated implementation assumes that the JSON data has a field named value which corresponds to the Value field of the StringOrInt struct.
+>> In this updated example, we redefine `StringOrInt` as a simple type of `string`. We then implement the `UnmarshalJSON` method for the `StringOrInt` type. 
+>> Inside the method, we handle the overloaded type by switching on the type of the raw value and assigning it to the `StringOrInt` variable `s`. 
+>> We convert `float64` and `int` values to strings using `strconv`.
 
 
-
-Sat, Oct 28, 2023, 2:11 pm
-LL
-
-make apiErrorDetails implement the Error i/face
-
-Sat, Oct 28, 2023, 2:13 pm
-To make the apiErrorDetails struct implement the error interface in Go, you need to define an Error method on the struct. Here's an example:
+# Pass me the error
+Finally, I wanted to have the `apiErrorDetails` (as possibly returned by the Shakespeare translating service) implement the Golang's error interface. 
+Usually, this is useful when logging or bubbling up a bespoke type as an error. So here I went again (notice the casual "i/face" thrown at the AI engine):
 
 
-Copied! ✅
-📝 Copy Code
- ➕ Insert Code
-package main
+> make apiErrorDetails implement the Error i/face
+>>
+>> To make the `apiErrorDetails` struct implement the `error` interface in Go, you need to define an `Error` method on the struct. Here's an example:
 
-import (
-	"fmt"
-)
-
+```go
 type apiErrorDetails struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -378,13 +393,32 @@ func main() {
 
 	fmt.Println(err.Error())
 }
-In this example, we define the apiErrorDetails struct with the Code and Message fields. We then implement the Error method on the struct, which returns a string representation of the error.
 
-In the main function, we create an instance of apiErrorDetails with sample values, and then call the Error method on the error instance to print the error message.
+```
+>> In this example, we define the `apiErrorDetails` struct with the `Code` and `Message` fields. We then implement the `Error` method on the struct, 
+>> which returns a string representation of the error.
+>> 
+>> In the `main` function, we create an instance of `apiErrorDetails` with sample values, and then call the `Error` method on 
+>> the error instance to print the error message.
+>>
+>> By implementing the `Error` method on the `apiErrorDetails` struct, it now satisfies the `error` interface in Go.
 
-By implementing the Error method on the apiErrorDetails struct, it now satisfies the error interface in Go.
 
+# Conclusions
+It is difficult and not accurate to draw ultimate conclusions based on such a single run and simple test. But these are my initial impressions:
 
+- I consider to have had a positive outcome of this AI interaction
+- almost feels like a non-judgemental programming buddy with several layers of re-factoring available.
+- is up to you as user to ask for iterative change , refactoring and honing down to an acceptable implementation to your taste and liking.
+- empirically, it saved me between 30% to 50% of development time. Realistically, would be even more when it gets down to writing documentation, 
+ unit tests and other time consuming cruft.
+- needless to say but don't trust the output 100%. Always validate and review the produced code. It seems very good at seeing "the trees for the forest" but 
+  not so good as seeing "the forest" or the whole ecosystem.
+- would I use it for personal (toy) projects and learning experience? Heck yes!
+- would I use this (or alternatives) for work? Yes, subject to the powers to be adopting such an AI provider.
+- beware addictions: it seems so fast and helpful in assisting with refactoring that you may be tempted to jump straight into it and 
+  attempt "changing the world" (aka your project) . Whilst the whole evolution and even the learning model is based on iterations, 
+  not all refactoring is good or worthwhile... so get a life people.
 
 
 
