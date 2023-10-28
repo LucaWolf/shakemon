@@ -22,7 +22,7 @@ This is a Go project, installing a golang compiler is a must.
 
 (Note: `jq` is but a pretty printing of the json output; skip it if unpleasant)
 
-# So... how's thnis AI engine Codeium faring?
+# So... how's this AI engine Codeium faring?
 Pretty darn good, I have been pleasantly impressed. 
 
 Read the full [experience](https://lucawolf.github.io/shakemon/) 
