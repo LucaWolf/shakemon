@@ -9,7 +9,7 @@ This project has been a testing playground for:
 # Usage
 This is a Go project, installing a golang compiler is a must.
 
-- clone the project by `go build`
+- clone the project then `go build`
 - run `./shakemon`
 - from a terminal: `curl localhost:8080/translate/pokemon/pikachu | jq` or any other celebrity Pokemon
 - output by the Bard itself:
