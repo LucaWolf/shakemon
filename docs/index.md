@@ -61,29 +61,39 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 >>
 >> Remember to import the Gorilla Mux package (`github.com/gorilla/mux`) before running this code.
 
-Decent enough! Let me made some scope adjustments and stub the desired functionality. So then it looked like:
+Decent enough! Let me make some scope adjustments and stub out the desired functionality. 
+Basically I want to get a description by name and then a "classy" translation. So it then looked like this:
 
 ```go
+// route declaration in main
 r.HandleFunc("/translate/{kind}/{name}", translatePokemon).Methods("GET")
 
-kind := vars["kind"]
-name := vars["name"]
+// route handler
+func translatePokemon(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kind := vars["kind"]
+	name := vars["name"]
 
-if kind != "pokemon" { return some json error body and http.StatusBadRequest }
+	if kind != "pokemon" { return some json error body and http.StatusBadRequest }
 
-if description, err := getDescription(name); err != nil {
-    // grab some official description
-    return some error body and http.StatusFailedDependency }
-} else if translation, err := getTranslation(description); err != nil {
-    // use the Bard
-    return some error body and http.StatusFailedDependency } 
-else {
-    // finally return the expectations
-    return result(translation) and http.StatusOK 
+	// grab some official description
+	if description, err := getDescription(name); err != nil {		
+		return some error body and http.StatusFailedDependency }
+	
+	// use the Bard
+	} else if translation, err := getTranslation(description); err != nil {		
+		return some error body and http.StatusFailedDependency }
+
+	// finally return the expectations
+	else {		
+		return result(translation) and http.StatusOK 
+	}
 }
 
 ```
-I won't get into what errors and positive outcome is, basically simple json body with the inherited errors or data.
+I won't get into what errors and positive outcome are, basically simple json bodies with the inherited errors or data
+(search `apiErrorDetails` and `apiReply` in the source code for reference).
+What I needed now was the implementation of `getDescription` and `getTranslation`.
 
 
 # Making of `getDescription`
@@ -156,14 +166,14 @@ func getDescription(name string) (string, error) {
 Very nice. I'd like to make it slightly mine though, so let's just call `SetResult(PokemonAPIResponse{})` on the `client.R()` request to let the 
 library do the heavy lifting on the json parsing. I don't care about of the `200` http code test for now, there is always room for improvement later on.
 
-**Impressive that**:
+ 🤯 **Mind blown that**:
  - it listed the right API endpoint from input of `pokemon` and `description` tokens (keywords) only.
  - it built path parameters for the API request correctly.
- - was able to build the `PokemonAPIResponse` response structure compatible with the API's definition.
-   (wherever it took it from, online or "trained memory". I did not have any local reference to that API though I have an older similar project in Github.
- - the embedded `struct` in `struct` definition of `PokemonAPIResponse` took me by surprise; I wasn't even aware of this syntax being allowed.
- - it compiled and worked correctly (even before adding any of my changes).
- - it automatically filtered the results by English `en` language <ins>without asking</ins> for this requirement. This context awareness is somewhat scary, 
+ - was able to build the `PokemonAPIResponse` response structure compatible with the API's definition
+   (wherever it took it from, online or "trained memory"). I did not have any local reference to that API though I have an older similar project in Github.
+ - the embedded `struct` in `struct` definition of `PokemonAPIResponse` took me by surprise; I wasn't fully aware of this syntax being allowed.
+ - the produced code compiled and worked correctly, even before adding any of my changes.
+ - it automatically filtered the results by English `en` language <ins>without asking</ins> for this requirement 😲. This context awareness is somewhat scary, 
    unless this functionality has been put forward in a lot of interviews :-) and is likely very well known and scores high on token references.
 
 
@@ -260,9 +270,10 @@ Nonetheless, the provided code was a solid starting base. My adjusted version re
 
 # Playing with json unmarshalling
 At this point, after a few debug/testing sessions, I realized that there is a divergence between the applications API error type `apiErrorDetails`
-(inspired by MS Graph and using `Code` formatted as `string` => some meaningful message) and the error returned by the translation service 
-(using `Code` as `integer` => the http.code value). In order to consolidate them, I've applied the "polymorphic" unmarshalling trick,
- i.e. type wrap the `Code` into own type `StringOrInt` and implementing a parsing routine over it. 
+returned by the endpoint handler (as inspired by MS Graph and using `Code` formatted as `string` => some meaningful message) and 
+the error returned by the translation service (similar but using `Code` as `integer` => the http.code value). 
+In order to consolidate them, I've applied the "polymorphic" unmarshalling trick,
+ i.e. type wrapping the `Code` into own type `StringOrInt` and implementing a bespoke parsing routine over it. 
  
 So my request to the AI engine was:
 > implement json deserialisation for type StringOrInt. When string copy as is, when integer convert into string.
@@ -405,17 +416,19 @@ func main() {
 
 
 # Conclusions
-It is difficult and not accurate to draw ultimate conclusions based on such a single run and simple test. But these are my initial impressions:
+It is difficult and not accurate to draw ultimate conclusions based on single runs and such simple tests. But here are my initial impressions:
 
 - I consider to have had a positive outcome of this AI interaction
-- almost feels like a non-judgemental programming buddy with several layers of re-factoring available.
-- is up to you as user to ask for iterative change , refactoring and honing down to an acceptable implementation to your taste and liking.
+- almost feels like a non-judgemental peer programming buddy
+- several layers of re-factoring are available.
+- it is fast. It may take seconds to crunch the data but then it outputs "many" (each engine has a hard limit) lines of code like nothing. How fast can you type?
+- is up to you as user to ask for iterative changes, refactoring and honing down to an acceptable (correct, to your taste and liking) level of implementation.
 - empirically, it saved me between 30% to 50% of development time. Realistically, would be even more when it gets down to writing documentation, 
  unit tests and other time consuming cruft.
-- needless to say but don't trust the output 100%. Always validate and review the produced code. It seems very good at seeing "the trees for the forest" but 
-  not so good as seeing "the forest" or the whole ecosystem.
+- needless to say but don't trust the generated output 100%. Always validate and review the produced code. 
+  It seems very good at seeing "the trees for the forest" but not so good as seeing "the forest" or the whole ecosystem.
 - would I use it for personal (toy) projects and learning experience? Heck yes!
-- would I use this (or alternatives) for work? Yes, subject to the powers to be adopting such an AI provider.
+- would I use this (or alternatives) for work? Absolutely, subject to the powers to be adopting such an AI provider.
 - beware addictions: it seems so fast and helpful in assisting with refactoring that you may be tempted to jump straight into it and 
   attempt "changing the world" (aka your project) . Whilst the whole evolution and even the learning model is based on iterations, 
   not all refactoring is good or worthwhile... so get a life people.
